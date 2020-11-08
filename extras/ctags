@@ -1,3 +1,0 @@
---langdef=mad
---langmap=mad:.mad
---regex-mad=/([A-Za-z0-9._$]+)[ \t]*[:=][ \t]*\{/\1/,object/

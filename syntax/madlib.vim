@@ -25,13 +25,13 @@ syntax keyword madDataKeyword         data                 skipwhite nextgroup=m
 syntax match   madDataTypeContainer                        contained /\<\K\k\+/ skipwhite nextgroup=madDataTypeVariable,madDataOr,madDataAssignment
 syntax match   madDataTypeVariable                         contained /\<\K\k\+/ skipwhite nextgroup=madDataOr,madDataAssignment 
 syntax match   madDataAssignment      /=/                  contained skipwhite skipempty nextgroup=madDataParens,madDataTypeContainer,madDataTypeVariable
-syntax match   madDataParens          "[()]"               contained skipwhite skipempty nextgroup=madDataTypeContainer,madDataTypeVariable
-syntax match   madDataOr              /|/                  contained skipwhite skipempty nextgroup=madTypeContainer,madTypeVariable
+syntax region  madDataParens          start='('  end=')'   contained skipwhite skipempty nextgroup=madDataTypeContainer,madDataTypeVariable,madTypeNext
+syntax match   madDataOr              /|/                  contained skipwhite skipempty nextgroup=madDataTypeContainer,madDataTypeVariable
 
 syntax cluster madData                contains=madDataKeyword,madDataTypeContainer,madDataTypeVariable,madDataAssignment,madDataOr
 
 syntax match   madTypeIdentifier      /^\K\k\+/            skipwhite nextgroup=madTypeDef
-syntax match   madTypeDef             /::/                 contained skipwhite skipempty nextgroup=madTypeParens
+syntax match   madTypeDef             /::/                 skipwhite skipempty nextgroup=madTypeParens
 syntax match   madTypeAssignment      /=/                  contained skipwhite skipempty nextgroup=madTypeContainer,madTypeVariable
 syntax match   madTypeContainer                            contained /\<\K\k\+/ skipwhite nextgroup=madTypeVariable,madTypeNext
 syntax match   madTypeVariable                             contained /\<\K\k\+/ skipwhite nextgroup=madTypeNext
@@ -40,12 +40,12 @@ syntax match   madTypeNext            /->/                           skipwhite s
 
 syntax cluster madType                contains=madTypeIdentifier,madTypeDef,madTypeAssignment,madTypeContainer,madTypeVariable,madTypeNext
 
-syntax match madPipe                  /|>/                 contained skipwhite nextgroup=@madExpression
-syntax match madIdentifier            /^\K\k\+/            skipwhite nextgroup=madAssignment
-syntax match madAssignment            /=/                  contained skipwhite skipempty nextgroup=madFunctionParameters
-syntax match madFunctionNoise         '[,]'                contained skipwhite skipempty
-syntax region madFunctionParameters   start='('  end=')'   contains=madTypeVariable,madFunctionNoise
-syntax match madArrow                 /=>/                           skipwhite nextgroup=@madExpression
+syntax match   madPipe                 /|>/                 contained skipwhite nextgroup=@madExpression
+syntax match   madIdentifier           /^\K\k\+/            skipwhite nextgroup=madAssignment
+syntax match   madAssignment           /=/                  contained skipwhite skipempty nextgroup=madFunctionParameters,madString,madBooleanTrue,madBooleanFalse,madNumber
+syntax match   madFunctionNoise        '[,]'                contained skipwhite skipempty
+syntax region  madFunctionParameters   start='('  end=')'   contains=madTypeVariable,madFunctionNoise
+syntax match   madArrow                /=>/                           skipwhite nextgroup=@madExpression
 
 syntax keyword madTodo                                     contained TODO
 
