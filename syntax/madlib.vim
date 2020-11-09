@@ -22,8 +22,8 @@ syntax keyword madOperatorKeyword     import export from             skipwhite
 " syntax region  madTypeDefinition      contains=madTypeDef,madTypeContainer,madTypeVariable,madDataNext
 
 syntax keyword madDataKeyword         data                 skipwhite nextgroup=madDataTypeContainer,madDataTypeVariable
-syntax match   madDataTypeContainer                        contained /\<\K\k\+/ skipwhite nextgroup=madDataTypeVariable,madDataOr,madDataAssignment
-syntax match   madDataTypeVariable                         contained /\<\K\k\+/ skipwhite nextgroup=madDataOr,madDataAssignment 
+syntax match   madDataTypeContainer                        "\l\@<!\<\u\w\+" skipwhite nextgroup=madDataTypeVariable,madDataOr,madDataAssignment 
+syntax match   madDataTypeVariable                         contained /\<\K\k\+/ skipwhite nextgroup=madDataTypeVariable,madDataOr,madDataAssignment 
 syntax match   madDataAssignment      /=/                  contained skipwhite skipempty nextgroup=madDataParens,madDataTypeContainer,madDataTypeVariable
 syntax region  madDataParens          start='('  end=')'   contained skipwhite skipempty nextgroup=madDataTypeContainer,madDataTypeVariable,madTypeNext
 syntax match   madDataOr              /|/                  contained skipwhite skipempty nextgroup=madDataTypeContainer,madDataTypeVariable
@@ -36,13 +36,13 @@ syntax match   madTypeAssignment      /=/                  contained skipwhite s
 syntax match   madTypeContainer                            contained /\<\K\k\+/ skipwhite nextgroup=madTypeVariable,madTypeNext
 syntax match   madTypeVariable                             contained /\<\K\k\+/ skipwhite nextgroup=madTypeNext
 syntax region  madTypeParens          start='('  end=')'   contained skipwhite skipempty nextgroup=madTypeContainer,madTypeVariable,madTypeIdentifier,madTypeNext
-syntax match   madTypeNext            /->/                           skipwhite skipempty 
+syntax match   madTypeNext            /->/                           skipwhite skipempty nextgroup=madDataParens,madDataTypeContainer,madDataTypeVariable
 
 syntax cluster madType                contains=madTypeIdentifier,madTypeDef,madTypeAssignment,madTypeContainer,madTypeVariable,madTypeNext
 
-syntax match   madPipe                 /|>/                 contained skipwhite nextgroup=@madExpression
+syntax match   madPipe                 /|>/                 skipempty skipwhite nextgroup=@madExpression
 syntax match   madIdentifier           /^\K\k\+/            skipwhite nextgroup=madAssignment
-syntax match   madAssignment           /=/                  contained skipwhite skipempty nextgroup=madFunctionParameters,madString,madBooleanTrue,madBooleanFalse,madNumber
+syntax match   madAssignment           /=/                  skipwhite skipempty nextgroup=madFunctionParameters,madString,madBooleanTrue,madBooleanFalse,madNumber
 syntax match   madFunctionNoise        '[,]'                contained skipwhite skipempty
 syntax region  madFunctionParameters   start='('  end=')'   contains=madTypeVariable,madFunctionNoise
 syntax match   madArrow                /=>/                           skipwhite nextgroup=@madExpression
@@ -61,7 +61,8 @@ syntax region  madString              start=+\z(["']\)+  skip=+\\\%(\z1\|$\)+  e
 syntax region  madTemplateString      start=+`+  skip=+\\`+  end=+`+     contains=madTemplateExpression extend
 syntax region  madTemplateExpression  contained matchgroup=madTemplateBraces start=+${+ end=+}+ contains=@madExpression keepend
 
-syntax region  madFence               start='#-' end='-#'  contained
+syntax region  madFenceBounded        start='#-' end='-#'
+syntax region  madFenceUnbounded      start='^#-' end='-#'
 
 syntax cluster madExpression          contains=madPipe,madData,madType,madString,madFence,madBooleanTrue,madBooleanFalse,madNumber
 
@@ -82,6 +83,9 @@ hi def link    madPipe                Keyword
 hi def link    madArrow               Keyword
 hi def link    madDataOr              Operator 
 hi def link    madDataAssignment      Operator 
+hi def link    madData                IncSearch
+hi def link    madFenceUnbounded      Error
+hi def link    madFenceBounded        Todo
 
 let b:current_syntax = "madlib"
 if main_syntax == 'madlib'
