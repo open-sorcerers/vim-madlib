@@ -1,0 +1,13 @@
+{
+  "name": "vim-madlib",
+  "version": "0.0.0",
+  "description": "vim x madlib",
+  "main": "index.js",
+  "repository": "https://github.com/open-sorcerers/vim-madlib.git",
+  "author": "brekk",
+  "license": "MIT",
+  "private": false,
+  "devDependencies": {
+    "snang": "^0.0.6"
+  }
+}
