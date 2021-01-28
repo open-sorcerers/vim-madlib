@@ -10,11 +10,35 @@ syntax case match
 setlocal foldmethod=indent
 setlocal foldignore=
 
-syntax match madIdentifier "[_a-z][a-zA-z0-9_']*" contained
+syntax keyword madNoBind         _
+           \   nextgroup=madParens,madOperators
 
-syntax match madTypeSig
+syntax keyword madInterface      interface
+           \   nextgroup=madDataIdentifier
+highlight link madInterface      Keyword
+
+syntax keyword madInstance       instance
+           \   nextgroup=madDataIdentifier
+highlight link madInstance       Keyword 
+
+syntax keyword madWhere          where is
+           \   nextgroup=madParens,madBlock
+highlight link madWhere          Keyword
+
+syntax match   madIdentifier     "[_a-z][a-zA-z0-9_']*"
+           \   contained
+highlight link madIdentifier     Identifier
+
+syntax match   madNumber         "[0-9\.]*[0-9\.]+"
+highlight link madNumber         Number
+
+syntax match   madTypeSig
            \   "^\s*\(where\s\+\|let\s\+\|default\s\+\)\?[_a-z][a-zA-Z0-9_']*#\?\(,\s*[_a-z][a-zA-Z0-9_']*#\?\)*\_s\+::\_s"
            \   contains=madWhere,madIdentifier,madOperators,madSeparator,madParens
+highlight link madTypeSig        Typedef 
+
+syntax match   madSeparator      "[,;]"
+highlight link madSeparator      Noise
 
 syntax match   madOperators      "[-!#$%&\*\+/<=>\?@\\^|~:.]\+\|\<_\>"
 highlight link madOperators      Operator
@@ -59,27 +83,69 @@ highlight link madImport         Keyword
 syntax match   madComment        "\v\/\/.*$"
 highlight link madComment        Comment
 
-syntax region  madString         start=/\v"/ skip=/\\./ end=/\v"/
-highlight link madString         String
+syntax keyword madTodo           TODO
+           \   contained
+           \   containedin=madBlockComment,madComment
+highlight link madTodo           Todo
+
+syntax region  madBlockComment
+           \   start="/*" end="*/"
+           \   contains=madBlockComment,madTodo,@Spell
+
+" STRINGS & REGULAR EXPRESSIONS
+syntax region  madTemplateExpression
+           \   contained
+           \   matchgroup=madTemplateBraces
+           \   start=+${+
+           \   end=+}+
+           \   contains=@madExpression
+           \   keepend
+
+syntax match   madSpecial         contained
+           \   "\v\\%(x\x\x|u%(\x{4}|\{\x{4,5}})|c\u|.)"
+syntax region  madString
+           \   start=+\z(["']\)+
+           \   skip=+\\\%(\z1\|$\)+
+           \   end=+\z1+
+           \   end=+$+
+           \   contains=madSpecial
+           \   extend
+syntax region  madTemplateString
+           \   start=+`+
+           \   skip=+\\`+
+           \   end=+`+
+           \   contains=madTemplateExpression,madSpecial
+           \   extend
+syntax match   madTaggedTemplate   /\<\K\k*\ze`/ nextgroup=madTemplateString
+
 
 syntax match   madFunctionCall   /\<\K\k*\ze(/
 highlight link madFunctionCall   Function
 
-syntax region  madModuleGroup    contained start=/{/ end=/}/   
+syntax region  madModuleGroup    contained
+           \   start=/{/ end=/}/   
            \   skipwhite skipempty
            \   matchgroup=madModuleBraces
-           \   contains=madModuleKeyword,madModuleComma,madModuleAs,madComment
+           \   contains=madModuleKeyword,madModuleComma,madComment
            \   nextgroup=madFrom
            \   fold
-syntax region  madParens         matchgroup=madDelimiter start="(" end=")" 
+syntax region  madParens
+           \   matchgroup=madDelimiter
+           \   start="(" end=")" 
            \   contains=TOP,@madTypeSig,@Spell
-syntax region  madBrackets       matchgroup=madDelimiter start="\[" end="]" 
+syntax region  madBrackets
+           \   matchgroup=madDelimiter
+           \   start="\[" end="]" 
            \   contains=TOP,@madTypeSig,@Spell
-syntax region  madBlock          matchgroup=madDelimiter start="{" end="}" 
+syntax region  madBlock
+           \   matchgroup=madDelimiter
+           \   start="{" end="}" 
            \   contains=TOP,@Spell
 
-syntax region  madFenceBounded   start='#-' end='-#'
+syntax region  madFenceBounded
+           \   start='#-' end='-#'
 highlight link madFenceBounded   Todo 
-syntax region  madFenceUnbounded start='^#-' end='-#'
+syntax region  madFenceUnbounded
+           \   start='^#-' end='-#'
 highlight link madFenceUnbounded Error
  

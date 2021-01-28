@@ -37,8 +37,20 @@ const {
   uniq,
   without
 } = require('snang/script')
+const { complextrace } = require('envtrace')
+const log = complextrace('vim-madlib', [
+  'structure',
+  'structureDetail',
+  'relationships',
+  'relationshipsDetail',
+  'names',
+  'namesDetail',
+  'validation',
+  'validationDetail'
+])
 
 const structureData = pipe(
+  log.structure('input'),
   map((datapoint) => {
     const hasEq = datapoint.search(/=/)
     if (!hasEq) return {}
@@ -57,35 +69,43 @@ const structureData = pipe(
         typeof v === 'string' && ~v.indexOf(',') ? v.split(',') : !v ? true : v
     }
   }),
-  reduce(mergeRight, {})
+  log.structureDetail('mapped'),
+  reduce(mergeRight, {}),
+  log.structure('output')
 )
-const splitComma = split(',')
 const swapNull = (x) =>
   x && typeof x === 'string' ? [x] : x[0] === '' ? [] : x
+
 const getRelationalData = pipe(
+  log.relationships('input'),
   applySpec({
     contains: pathOr([], ['data', 'contains']),
     nextgroup: pathOr([], ['data', 'nextgroup']),
     matchgroup: pathOr([], ['data', 'matchgroup'])
   }),
-  map(pipe(swapNull))
+  log.relationshipsDetail('applied spec'),
+  map(pipe(swapNull)),
+  log.relationships('output')
 )
 
 const stripAtSign = (z) => (z[0] === '@' ? z.substr(1) : z)
 
 const skipGlobals = (z) => reject((zz) => ['TOP', '@Spell'].includes(zz), z)
 
-const getAllNames = once(
-  pipe(
-    map(pipe(of, ap([prop('name'), path(['data', 'matchgroup'])]))),
-    reduce(concat, []),
-    uniq
-  )
+const getAllNames = pipe(
+  log.names('input'),
+  map(pipe(of, ap([prop('name'), path(['data', 'matchgroup'])]))),
+  log.namesDetail('transformed'),
+  reduce(concat, []),
+  filter(I),
+  uniq,
+  log.names('output')
 )
 const invalidRelativeToNames = curry((names, match) =>
   pipe(skipGlobals, map(stripAtSign), without(names))(match)
 )
 const solveValidity = curry((names, agg, x) => {
+  log.validation('input', { names, agg, x })
   const { contains, nextgroup, matchgroup } = getRelationalData(x)
   const invalid = invalidRelativeToNames(names)
   const invalidContains = contains.length && invalid(contains)
@@ -97,6 +117,7 @@ const solveValidity = curry((names, agg, x) => {
     matchgroup: invalidMatchGroup
   }
   const expected = map(filter(I), matched)
+  log.validationDetail('matched', expected)
   const valid =
     expected.contains.length +
       expected.nextgroup.length +
@@ -106,6 +127,7 @@ const solveValidity = curry((names, agg, x) => {
     ...x,
     valid
   }
+  log.validation('output singular', y)
   return valid ? agg.concat(y) : agg.concat({ ...y, expected })
 })
 
@@ -128,8 +150,11 @@ const unfoldLeadingSlashes = reduce((list, b) => {
   return list.concat(b)
 }, [])
 
-const secondIsMatchOrKeyword = pipe(split(C._), map(trim), nth(1), (raw) =>
-  ['match', 'keyword', 'region'].includes(raw)
+const matchMatchKeywordOrRegionOnly = pipe(
+  split(C._),
+  map(trim),
+  nth(1),
+  (raw) => ['match', 'keyword', 'region'].includes(raw)
 )
 
 module.exports = pipe(
@@ -139,7 +164,7 @@ module.exports = pipe(
       split(C.n),
       unfoldLeadingSlashes,
       filter(startsWith('syntax')),
-      filter(secondIsMatchOrKeyword),
+      filter(matchMatchKeywordOrRegionOnly),
       map(pipe(split(C._), filter(I), map(trim))),
       map(([_, kind, name, ...data]) => ({
         kind,
