@@ -29,7 +29,7 @@ syntax match   madIdentifier     "[_a-z][a-zA-z0-9_']*"
            \   contained
 highlight link madIdentifier     Identifier
 
-syntax match   madNumber         "[0-9\.]*[0-9\.]+"
+syntax match   madNumber         "\v<\d*\.?\d+>"
 highlight link madNumber         Number
 
 syntax match   madTypeSig
@@ -89,8 +89,9 @@ syntax keyword madTodo           TODO
 highlight link madTodo           Todo
 
 syntax region  madBlockComment
-           \   start="/*" end="*/"
-           \   contains=madBlockComment,madTodo,@Spell
+           \   start="/\*" end="\*/"
+           \   contains=madTodo,@Spell
+highlight link madBlockComment   Comment
 
 " STRINGS & REGULAR EXPRESSIONS
 syntax region  madTemplateExpression
