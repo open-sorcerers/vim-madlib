@@ -1,10 +1,14 @@
 const {
   ap,
-  curry,
+  chain,
   concat,
+  curry,
+  equals,
   filter,
   fork,
+  ifElse,
   j2,
+  length,
   map,
   of,
   pipe,
@@ -13,8 +17,11 @@ const {
   readStdin,
   reduce,
   reject,
-  trace
+  trace,
+  when
 } = require('snang/script')
+const kleur = require('kleur')
+const { reject: rejectFuture, resolve } = require('fluture')
 
 const [input] = process.argv.slice(2)
 const excludes = ['@Spell', 'TOP']
@@ -31,9 +38,7 @@ const filterRelativeToStdIn = (zzz) =>
 const convertDataToErrors = reduce((a, [def, expected]) => {
   const c = pipe(
     reject(([name]) => excludes.includes(name)),
-    map(
-      ([name, cause]) => `Unexpected reference in ${def} (${cause}=${name})`
-    )
+    map(([name, cause]) => `Unexpected reference in ${def} (${cause}=${name})`)
   )(expected)
   return a.concat(c)
 }, [])
@@ -56,8 +61,28 @@ const validateSyntax = pipe(
   convertDataToErrors
 )
 
+const swapToRejectionBranch = chain((raw) =>
+  ifElse(
+    pipe(length, equals(0)),
+    () => resolve(kleur.green('Hooray, no errors!')),
+    rejectFuture
+  )(raw)
+)
+
 module.exports = pipe(
   readStdin,
   map(validateSyntax),
-  fork(console.error, console.log)
+  swapToRejectionBranch,
+  // convert non-empty arrays into non-zero exits
+  fork(
+    (err) => {
+      console.error(kleur.red(`Found ${err.length} invalid relationships:`))
+      console.error(err)
+      process.exit(1)
+    },
+    (raw) => {
+      console.log(raw)
+      process.exit(0)
+    }
+  )
 )(process.argv.slice(2)[0])

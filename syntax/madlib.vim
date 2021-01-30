@@ -25,22 +25,31 @@ syntax keyword madWhere          where is
            \   nextgroup=madParens,madBlock
 highlight link madWhere          Keyword
 
-syntax match   madIdentifier     "[_a-z][a-zA-z0-9_']*"
-           \   contained
+syntax match   madIdentifier     "\v<[a-zA-z0-9_]+>"
+           \   nextgroup=madAssignment,madOperators,madParens
 highlight link madIdentifier     Identifier
 
-syntax match   madNumber         "\v<\d*\.?\d+>"
+syntax match   madNumber         "\v<\-?\d*\.?\d+>"
 highlight link madNumber         Number
 
 syntax match   madTypeSig
-           \   "^\s*\(where\s\+\|let\s\+\|default\s\+\)\?[_a-z][a-zA-Z0-9_']*#\?\(,\s*[_a-z][a-zA-Z0-9_']*#\?\)*\_s\+::\_s"
+           \   "^\s*[_a-z][a-zA-Z0-9_']*#\?\(,\s*[_a-z][a-zA-Z0-9_']*#\?\)*\_s\+::\_s"
            \   contains=madWhere,madIdentifier,madOperators,madSeparator,madParens
 highlight link madTypeSig        Typedef 
 
 syntax match   madSeparator      "[,;]"
 highlight link madSeparator      Noise
 
-syntax match   madOperators      "[-!#$%&\*\+/<=>\?@\\^|~:.]\+\|\<_\>"
+syntax match   madAssignment     "="
+highlight link madAssignment     Operator
+
+syntax match   madFatArrow       "=>"
+highlight link madFatArrow       Operator
+
+syntax match   madSkinnyArrow    "->"
+highlight link madSkinnyArrow    Operator
+
+syntax match   madOperators      "[-!#$%&\*\+/<>\?@\\^|~:.]\+\|\<_\>"
 highlight link madOperators      Operator
 
 syntax keyword madData           data 
@@ -75,6 +84,9 @@ syntax match   madModuleKeyword  contained /\<\K\k*/
            \   nextgroup=madFrom,madModuleComma
 highlight link madModuleKeyword  Keyword
 
+syntax keyword madExport         export
+highlight link madExport         Underlined
+
 syntax keyword madImport         import
            \   skipwhite skipempty 
            \   nextgroup=madModuleKeyword,madModuleGroup
@@ -94,16 +106,17 @@ syntax region  madBlockComment
 highlight link madBlockComment   Comment
 
 " STRINGS & REGULAR EXPRESSIONS
-syntax region  madTemplateExpression
-           \   contained
-           \   matchgroup=madTemplateBraces
-           \   start=+${+
-           \   end=+}+
-           \   contains=@madExpression
-           \   keepend
+" syntax region  madTemplateExpression
+"            \   contained
+"            \   matchgroup=madTemplateBraces
+"            \   start=+${+
+"            \   end=+}+
+"            \   contains=@madExpression
+"            \   keepend
 
-syntax match   madSpecial         contained
+syntax match   madSpecial        contained
            \   "\v\\%(x\x\x|u%(\x{4}|\{\x{4,5}})|c\u|.)"
+highlight link madSpecial        Identifier
 syntax region  madString
            \   start=+\z(["']\)+
            \   skip=+\\\%(\z1\|$\)+
@@ -111,17 +124,19 @@ syntax region  madString
            \   end=+$+
            \   contains=madSpecial
            \   extend
+highlight link madString         String
 syntax region  madTemplateString
            \   start=+`+
            \   skip=+\\`+
            \   end=+`+
-           \   contains=madTemplateExpression,madSpecial
+           \   contains=madSpecial
            \   extend
+highlight link madTemplateString         String
 syntax match   madTaggedTemplate   /\<\K\k*\ze`/ nextgroup=madTemplateString
+highlight link madTaggedTemplate         Identifier
 
-
-syntax match   madFunctionCall   /\<\K\k*\ze(/
-highlight link madFunctionCall   Function
+syntax keyword madBool                   true false
+highlight link madBool                   Boolean
 
 syntax region  madModuleGroup    contained
            \   start=/{/ end=/}/   
