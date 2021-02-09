@@ -1,5 +1,6 @@
 module.exports = {
   scripts: {
-    syntaxLint: 'cat syntax/madlib.vim | node consumeSyntax.js | node validateSyntax.js'
+    read: 'villian syntax/madlib.vim',
+    validate: 'villian syntax/madlib.vim --validate'
   }
 }

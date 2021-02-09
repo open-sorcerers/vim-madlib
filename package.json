@@ -13,7 +13,8 @@
     "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^2.2.1",
     "prettier-eslint": "^12.0.0",
-    "snang": "^0.0.6"
+    "snang": "^0.0.6",
+    "villian": "^0.0.2"
   },
   "scripts": {
     "start": "nps"
